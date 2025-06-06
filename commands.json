@@ -1,0 +1,317 @@
+[
+  {
+    "cmd": "sheela sheela",
+    "status": "success",
+    "timestamp": "2025-06-06T12:33:19Z",
+    "responseTime": 9512,
+    "user": "default_user",
+    "response": "Executed command: sheela sheela",
+    "result": "Executed command: sheela sheela"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T12:34:09Z",
+    "responseTime": 30609,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "one",
+    "status": "success",
+    "timestamp": "2025-06-06T12:34:33Z",
+    "responseTime": 12508,
+    "user": "default_user",
+    "response": "Executed command: one",
+    "result": "Executed command: one"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T12:51:18Z",
+    "responseTime": 30528,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "shila shila shila shila shila",
+    "status": "success",
+    "timestamp": "2025-06-06T13:03:31Z",
+    "responseTime": 38399,
+    "user": "default_user",
+    "response": "Executed command: shila shila shila shila shila",
+    "result": "Executed command: shila shila shila shila shila"
+  },
+  {
+    "cmd": "shila shila shila",
+    "status": "success",
+    "timestamp": "2025-06-06T13:03:55Z",
+    "responseTime": 24087,
+    "user": "default_user",
+    "response": "Executed command: shila shila shila",
+    "result": "Executed command: shila shila shila"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T13:04:33Z",
+    "responseTime": 37649,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "sheela",
+    "status": "success",
+    "timestamp": "2025-06-06T13:04:56Z",
+    "responseTime": 23531,
+    "user": "default_user",
+    "response": "Executed command: sheela",
+    "result": "Executed command: sheela"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T13:05:47Z",
+    "responseTime": 30796,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "11",
+    "status": "success",
+    "timestamp": "2025-06-06T13:06:46Z",
+    "responseTime": 46829,
+    "user": "default_user",
+    "response": "Executed command: 11",
+    "result": "Executed command: 11"
+  },
+  {
+    "cmd": "one",
+    "status": "success",
+    "timestamp": "2025-06-06T13:08:22Z",
+    "responseTime": 12463,
+    "user": "default_user",
+    "response": "Executed command: one",
+    "result": "Executed command: one"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T13:08:45Z",
+    "responseTime": 13142,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "three",
+    "status": "success",
+    "timestamp": "2025-06-06T13:09:13Z",
+    "responseTime": 12833,
+    "user": "default_user",
+    "response": "Executed command: three",
+    "result": "Executed command: three"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T13:09:46Z",
+    "responseTime": 23883,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "three",
+    "status": "success",
+    "timestamp": "2025-06-06T13:10:11Z",
+    "responseTime": 12645,
+    "user": "default_user",
+    "response": "Executed command: three",
+    "result": "Executed command: three"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T13:10:53Z",
+    "responseTime": 31309,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "on",
+    "status": "success",
+    "timestamp": "2025-06-06T13:11:31Z",
+    "responseTime": 30329,
+    "user": "default_user",
+    "response": "Executed command: on",
+    "result": "Executed command: on"
+  },
+  {
+    "cmd": "google your device wala se kaise connect",
+    "status": "success",
+    "timestamp": "2025-06-06T13:12:19Z",
+    "responseTime": 39618,
+    "user": "default_user",
+    "response": "Executed command: google your device wala se kaise connect",
+    "result": "Executed command: google your device wala se kaise connect"
+  },
+  {
+    "cmd": "sheela sheela",
+    "status": "success",
+    "timestamp": "2025-06-06T13:21:18Z",
+    "responseTime": 9798,
+    "user": "default_user",
+    "response": "Executed command: sheela sheela",
+    "result": "Executed command: sheela sheela"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T13:21:51Z",
+    "responseTime": 12873,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "sheela",
+    "status": "success",
+    "timestamp": "2025-06-06T13:30:29Z",
+    "responseTime": 23536,
+    "user": "default_user",
+    "response": "Executed command: sheela",
+    "result": "Executed command: sheela"
+  },
+  {
+    "cmd": "yas yas yas yas yas yas yas yas yas yas yas yas yas yas yas yas yas",
+    "status": "success",
+    "timestamp": "2025-06-06T13:32:23Z",
+    "responseTime": 32997,
+    "user": "default_user",
+    "response": "Executed command: yas yas yas yas yas yas yas yas yas yas yas yas yas yas yas yas yas",
+    "result": "Executed command: yas yas yas yas yas yas yas yas yas yas yas yas yas yas yas yas yas"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T13:33:01Z",
+    "responseTime": 30072,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "three",
+    "status": "success",
+    "timestamp": "2025-06-06T13:33:26Z",
+    "responseTime": 12631,
+    "user": "default_user",
+    "response": "Executed command: three",
+    "result": "Executed command: three"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T13:34:08Z",
+    "responseTime": 31350,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "on",
+    "status": "success",
+    "timestamp": "2025-06-06T13:34:28Z",
+    "responseTime": 12875,
+    "user": "default_user",
+    "response": "Executed command: on",
+    "result": "Executed command: on"
+  },
+  {
+    "cmd": "",
+    "status": "failed",
+    "timestamp": "2025-06-06T13:52:13Z",
+    "responseTime": 11499,
+    "user": "default_user",
+    "response": "Error in speech recognition: [WinError 2] The system cannot find the file specified",
+    "result": "Error in speech recognition: [WinError 2] The system cannot find the file specified"
+  },
+  {
+    "cmd": "",
+    "status": "failed",
+    "timestamp": "2025-06-06T13:52:25Z",
+    "responseTime": 23252,
+    "user": "default_user",
+    "response": "Error in speech recognition: [WinError 2] The system cannot find the file specified",
+    "result": "Error in speech recognition: [WinError 2] The system cannot find the file specified"
+  },
+  {
+    "cmd": "",
+    "status": "failed",
+    "timestamp": "2025-06-06T13:52:36Z",
+    "responseTime": 35002,
+    "user": "default_user",
+    "response": "Error in speech recognition: [WinError 2] The system cannot find the file specified",
+    "result": "Error in speech recognition: [WinError 2] The system cannot find the file specified"
+  },
+  {
+    "cmd": "",
+    "status": "failed",
+    "timestamp": "2025-06-06T13:52:48Z",
+    "responseTime": 11761,
+    "user": "default_user",
+    "response": "Error in speech recognition: [WinError 2] The system cannot find the file specified",
+    "result": "Error in speech recognition: [WinError 2] The system cannot find the file specified"
+  },
+  {
+    "cmd": "",
+    "status": "failed",
+    "timestamp": "2025-06-06T13:53:00Z",
+    "responseTime": 23523,
+    "user": "default_user",
+    "response": "Error in speech recognition: [WinError 2] The system cannot find the file specified",
+    "result": "Error in speech recognition: [WinError 2] The system cannot find the file specified"
+  },
+  {
+    "cmd": "sheela",
+    "status": "success",
+    "timestamp": "2025-06-06T14:39:44Z",
+    "responseTime": 9400,
+    "user": "default_user",
+    "response": "Executed command: sheela",
+    "result": "Executed command: sheela"
+  },
+  {
+    "cmd": "yes",
+    "status": "success",
+    "timestamp": "2025-06-06T14:40:15Z",
+    "responseTime": 12848,
+    "user": "default_user",
+    "response": "Executed command: yes",
+    "result": "Executed command: yes"
+  },
+  {
+    "cmd": "shila",
+    "status": "success",
+    "timestamp": "2025-06-06T14:41:47Z",
+    "responseTime": 9761,
+    "user": "default_user",
+    "response": "Executed command: shila",
+    "result": "Executed command: shila"
+  },
+  {
+    "cmd": "sheela",
+    "status": "success",
+    "timestamp": "2025-06-06T14:41:57Z",
+    "responseTime": 9339,
+    "user": "default_user",
+    "response": "Executed command: sheela",
+    "result": "Executed command: sheela"
+  }
+]

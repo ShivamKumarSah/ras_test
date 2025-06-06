@@ -1,0 +1,40 @@
+{
+  "fan1": {
+    "id": "fan1",
+    "name": "Fan 1",
+    "type": "fan",
+    "room": "Living Room",
+    "isOn": true,
+    "speed": 0,
+    "color": "#4ECDC4",
+    "lastUpdated": "2025-06-06T14:32:51.539628"
+  },
+  "fan2": {
+    "id": "fan2",
+    "name": "Fan 2",
+    "type": "fan",
+    "room": "Bedroom",
+    "isOn": false,
+    "speed": 0,
+    "color": "#4ECDC4",
+    "lastUpdated": "2025-06-06T14:24:20.648059"
+  },
+  "bulb1": {
+    "id": "bulb1",
+    "name": "Bulb 1",
+    "type": "bulb",
+    "room": "Living Room",
+    "isOn": true,
+    "color": "#FFB800",
+    "lastUpdated": "2025-06-06T14:04:25.946151"
+  },
+  "bulb2": {
+    "id": "bulb2",
+    "name": "Bulb 2",
+    "type": "bulb",
+    "room": "Bedroom",
+    "isOn": false,
+    "color": "#FFB800",
+    "lastUpdated": "2025-06-06T14:06:57.906533"
+  }
+}

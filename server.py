@@ -1,260 +1,307 @@
-from flask import Flask, request, jsonify
-from datetime import datetime
-import random
+import pyttsx3
+import datetime
 import time
-from collections import Counter
-from flask_cors import CORS
-import logging
+import requests
+import speech_recognition as sr
+import json
+import os
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})  # Enable CORS for all API routes
-
-# In-memory storage for devices and command history
-DEVICES = {}
-COMMAND_HISTORY = []
-
-def generate_device_id():
-    return f"DEV_{int(time.time())}_{random.randint(1000, 9999)}"
-
-def create_sample_devices():
-    """Create and return sample devices"""
-    logger.debug("Creating sample devices")
-    sample_devices = [
-        {
-            "id": generate_device_id(),
-            "name": "Living Room Light",
-            "type": "bulb",
-            "room": "Living Room",
-            "isOn": True,
-            "color": "#FFB800",
-            "lastUpdated": datetime.utcnow().isoformat()
-        },
-        {
-            "id": generate_device_id(),
-            "name": "Bedroom Fan",
-            "type": "fan",
-            "room": "Bedroom",
-            "isOn": True,
-            "speed": 3,
-            "color": "#4ECDC4",
-            "lastUpdated": datetime.utcnow().isoformat()
-        },
-        {
-            "id": generate_device_id(),
-            "name": "Bedroom Fan",
-            "type": "fan",
-            "room": "Living Room",
-            "isOn": False,
-            "speed": 1,
-            "color": "#4ECDC4",
-            "lastUpdated": datetime.utcnow().isoformat()
-        }
-    ]
-    return sample_devices
-
-@app.route('/api/devices', methods=['GET'])
-def get_devices():
-    """Get all registered devices"""
-    try:
-        logger.debug("GET /api/devices called")
-        global DEVICES
+class Sheila:
+    def __init__(self):
+        self.engine = pyttsx3.init()
+        self.engine.setProperty('voice', "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0")
+        self.engine.setProperty('rate', 150)
+        self.engine.setProperty('volume', 1.0)
+        self.weather_api_key = "11e3cf08706a5755f4cde00f819ad805"
+        self.city = "Kolkata"
+        self.is_active = False
+        self.current_device = None
+        self.current_menu = None
+        self.commands_file = "commands.json"
+        self.devices_file = "devices.json"
         
-        # If no devices exist, add sample devices
-        if not DEVICES:
-            logger.debug("No devices found, adding sample devices")
-            sample_devices = create_sample_devices()
-            for device in sample_devices:
-                DEVICES[device["id"]] = device
-            logger.debug(f"Added {len(sample_devices)} sample devices")
-            logger.debug(f"Current devices: {DEVICES}")
-
-        devices_list = list(DEVICES.values())
-        logger.debug(f"Returning {len(devices_list)} devices: {devices_list}")
-        return jsonify(devices_list), 200
-    except Exception as e:
-        logger.error(f"Error in get_devices: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/devices', methods=['POST'])
-def add_device():
-    """Add a new device"""
-    try:
-        data = request.get_json()
-        logger.debug(f"POST /api/devices called with data: {data}")
-        
-        if not data or 'name' not in data or 'type' not in data:
-            return jsonify({"error": "Missing required fields"}), 400
-
-        device_id = generate_device_id()
-        device = {
-            "id": device_id,
-            "name": data['name'],
-            "type": data['type'],
-            "room": data.get('room', 'Unknown'),
-            "isOn": False,
-            "speed": 1 if data['type'] == 'fan' else None,
-            "color": data.get('color', '#FFB800'),
-            "lastUpdated": datetime.utcnow().isoformat()
+        # Number word mapping
+        self.number_words = {
+            'zero': '0', 'one': '1', 'two': '2', 'three': '3', 'four': '4',
+            'first': '1', 'second': '2', 'third': '3', 'fourth': '4',
+            '1st': '1', '2nd': '2', '3rd': '3', '4th': '4'
         }
         
-        DEVICES[device_id] = device
-        logger.debug(f"Added new device: {device}")
-        return jsonify(device), 201
-    except Exception as e:
-        logger.error(f"Error in add_device: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        # Initialize device states with actual device IDs
+        self.device_states = {
+            'fan1': {'power': False, 'speed': 0},
+            'fan2': {'power': False, 'speed': 0},
+            'bulb1': {'power': False},
+            'bulb2': {'power': False}
+        }
+        self.main_menu = {
+            '1': 'Control Fan 1',
+            '2': 'Control Fan 2',
+            '3': 'Control Bulb 1',
+            '4': 'Control Bulb 2'
+        }
+        self.fan_menu = {
+            'on': 'Start the fan',
+            'off': 'Switch it off',
+            '0': 'Level zero',
+            '1': 'Level one',
+            '2': 'Level two',
+            '3': 'Level three',
+            '4': 'Level four'
+        }
+        self.bulb_menu = {
+            'on': 'Turn on the bulb',
+            'off': 'Turn off the bulb'
+        }
+        self.recognizer = sr.Recognizer()
+        self.microphone = sr.Microphone()
+        with self.microphone as source:
+            print("Microphone ready!")
 
-@app.route('/api/devices/<device_id>', methods=['DELETE'])
-def remove_device(device_id):
-    """Remove a device"""
-    if device_id not in DEVICES:
-        return jsonify({"error": "Device not found"}), 404
-    
-    del DEVICES[device_id]
-    return jsonify({"message": "Device removed successfully"}), 200
+    def normalize_command(self, command: str) -> str:
+        """Convert word numbers to digits and normalize command"""
+        command = command.lower().strip()
+        words = command.split()
+        normalized_words = [self.number_words.get(word, word) for word in words]
+        return ' '.join(normalized_words)
 
-@app.route('/api/devices/<device_id>/state', methods=['PUT'])
-def update_device_state(device_id):
-    """Update device state (on/off, speed)"""
-    if device_id not in DEVICES:
-        return jsonify({"error": "Device not found"}), 404
+    def speak(self, text: str) -> None:
+        print(f"Sheila: {text}")
+        self.engine.say(text)
+        self.engine.runAndWait()
 
-    data = request.get_json()
-    device = DEVICES[device_id]
-    
-    if 'isOn' in data:
-        device['isOn'] = data['isOn']
-    
-    if device['type'] == 'fan' and 'speed' in data:
-        device['speed'] = max(1, min(3, data['speed']))
-    
-    if 'color' in data:
-        device['color'] = data['color']
-    
-    device['lastUpdated'] = datetime.utcnow().isoformat()
-    DEVICES[device_id] = device
-    
-    return jsonify(device), 200
+    def get_weather(self) -> str:
+        try:
+            url = f"http://api.openweathermap.org/data/2.5/weather?q={self.city}&appid={self.weather_api_key}&units=metric"
+            response = requests.get(url)
+            data = response.json()
+            if response.status_code == 200:
+                temperature = round(data['main']['temp'])
+                weather_description = data['weather'][0]['description']
+                return f"{temperature}°C with {weather_description}"
+            else:
+                return "Unable to fetch weather information"
+        except Exception as e:
+            return "Unable to fetch weather information"
 
-@app.route('/api/ping', methods=['GET'])
-def ping():
-    """Simply confirm the server is running."""
-    return jsonify({ "alive": True }), 200
+    def get_greeting(self) -> str:
+        hour = datetime.datetime.now().hour
+        if 5 <= hour < 12:
+            return "Good morning"
+        elif 12 <= hour < 17:
+            return "Good afternoon"
+        else:
+            return "Good evening"
 
-@app.route('/api/command', methods=['POST'])
-def command():
-    """
-    Expects JSON payload:
-      { "cmd": "<voice command text>" }
-    Simulate processing and return a result.
-    """
-    start_time = time.time() # Record start time
-    data = request.get_json() or {}
-    cmd = data.get('cmd', '').strip()
+    def get_current_time(self) -> str:
+        return datetime.datetime.now().strftime("%I:%M %p")
 
-    if not cmd:
-        return jsonify({ "status": "error", "result": "No command provided." }), 400
+    def listen(self, prompt=None, retries=3) -> str:
+        self.command_start_time = time.time()
+        for attempt in range(retries):
+            if prompt:
+                self.speak(prompt)
+            with self.microphone as source:
+                print("Listening...")
+                try:
+                    audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=7)
+                    text = self.recognizer.recognize_google(audio).lower()
+                    print(f"You said: {text}")
+                    normalized_text = self.normalize_command(text)
+                    # Store successful command
+                    self.store_command(text, f"Executed command: {text}")
+                    return normalized_text
+                except sr.UnknownValueError:
+                    self.speak("Sorry, I didn't catch that. Please repeat.")
+                    self.store_command("", "Speech not recognized", "failed")
+                except sr.WaitTimeoutError:
+                    self.speak("I didn't hear anything. Please try again.")
+                    self.store_command("", "No speech detected", "failed")
+                except sr.RequestError as e:
+                    self.speak(f"Speech recognition error: {e}")
+                    self.store_command("", f"Speech recognition error: {e}", "failed")
+                    break
+                except Exception as e:
+                    self.speak(f"Error: {e}")
+                    self.store_command("", f"Error: {e}", "failed")
+        return ""
 
-    # Simulate processing (e.g. classify voice, toggle a device, etc.)
-    # In a real system, this is where you'd integrate with your hardware/service
-    simulated_latency = random.uniform(50, 500) # Simulate processing time
-    time.sleep(simulated_latency / 1000) # Simulate blocking I/O
-    end_time = time.time() # Record end time
-    response_time_ms = round((end_time - start_time) * 1000)
+    def update_device_state(self, device_id: str, updates: dict) -> None:
+        """Update device state in devices.json"""
+        try:
+            with open(self.devices_file, 'r') as f:
+                devices = json.load(f)
+            
+            if device_id in devices:
+                devices[device_id].update(updates)
+                devices[device_id]['lastUpdated'] = datetime.datetime.utcnow().isoformat()
+                
+                with open(self.devices_file, 'w') as f:
+                    json.dump(devices, f, indent=2)
+        except Exception as e:
+            print(f"Error updating device state: {str(e)}")
 
-    result_text = f"Executed command: {cmd}"
-    status = "success"
+    def store_command(self, command: str, response: str, status: str = "success") -> None:
+        """Store command in commands.json with actual response time"""
+        try:
+            if os.path.exists(self.commands_file):
+                with open(self.commands_file, 'r') as f:
+                    commands = json.load(f)
+            else:
+                commands = []
 
-    # Simulate occasional errors
-    if random.random() < 0.1: # 10% chance of failure
-        status = "failed"
-        result_text = f"Failed to execute command: {cmd}"
+            response_time = int((time.time() - self.command_start_time) * 1000)
+            command_entry = {
+                "cmd": command,
+                "status": status,
+                "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "responseTime": response_time,
+                "user": "default_user",
+                "response": response,
+                "result": response
+            }
 
-    # Record into history using a proper timestamp and include response time
-    COMMAND_HISTORY.append({
-        "cmd": cmd,
-        "status": status,
-        "timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "responseTime": response_time_ms, # Add responseTime
-        "user": "default_user", # Add a placeholder user
-        "response": result_text, # Add response text
-        "result": result_text # Keep result for compatibility
-    })
+            commands.append(command_entry)
 
-    return jsonify({ "status": status, "result": result_text }), 200
+            with open(self.commands_file, 'w') as f:
+                json.dump(commands, f, indent=2)
 
-START_TIME = time.time()
+        except Exception as e:
+            print(f"Error storing command: {str(e)}")
 
-@app.route('/api/status', methods=['GET'])
-def status():
-    """
-    Return device status: uptime, signal, battery, temperature, humidity, noise, accuracy.
-    """
-    uptime = int(time.time() - START_TIME)
-    # Simulate signal, battery, etc. with random or static values for now
-    signal = random.randint(-70, -50)      # dBm
-    battery = random.randint(70, 100)      # percent
-    temperature = round(random.uniform(22, 28), 1)
-    humidity = random.randint(40, 60)
-    noise = random.randint(30, 50)
-    accuracy = random.randint(85, 99)
+    def process_device_command(self, device: str, command: str) -> None:
+        command = command.lower().strip()
+        device_map = {
+            '1': 'fan1',
+            '2': 'fan2',
+            '3': 'bulb1',
+            '4': 'bulb2'
+        }
+        device_id = device_map.get(device, device)
 
-    return jsonify({
-        "uptime": uptime,
-        "signal": signal,
-        "battery": battery,
-        "temperature": temperature,
-        "humidity": humidity,
-        "noise": noise,
-        "accuracy": accuracy
-    }), 200
+        if 'fan' in device_id:
+            if command == 'on':
+                self.device_states[device_id]['power'] = True
+                self.update_device_state(device_id, {'isOn': True})
+                self.speak(f"{device_id} has been turned on")
+            elif command == 'off':
+                self.device_states[device_id]['power'] = False
+                self.device_states[device_id]['speed'] = 0
+                self.update_device_state(device_id, {'isOn': False, 'speed': 0})
+                self.speak(f"{device_id} has been turned off")
+            elif command in ['0', '1', '2', '3', '4'] or command in self.number_words.values():
+                speed = command if command in ['0', '1', '2', '3', '4'] else self.number_words.get(command, command)
+                self.device_states[device_id]['speed'] = int(speed)
+                self.update_device_state(device_id, {'speed': int(speed)})
+                self.speak(f"{device_id} speed is now set to level {speed} out of 4")
+            else:
+                self.handle_invalid_input()
+        elif 'bulb' in device_id:
+            if command == 'on':
+                self.device_states[device_id]['power'] = True
+                self.update_device_state(device_id, {'isOn': True})
+                self.speak(f"{device_id} has been turned on")
+            elif command == 'off':
+                self.device_states[device_id]['power'] = False
+                self.update_device_state(device_id, {'isOn': False})
+                self.speak(f"{device_id} has been turned off")
+            else:
+                self.handle_invalid_input()
 
-@app.route('/api/analytics', methods=['GET'])
-def analytics():
-    """
-    Return analytics data including total commands, successes, avg latency,
-    last five commands, and command frequencies.
-    """
-    total = len(COMMAND_HISTORY)
-    successes = sum(1 for entry in COMMAND_HISTORY if entry["status"] == "success")
+    def handle_invalid_input(self) -> None:
+        self.speak("The input command is invalid.")
+        time.sleep(1)
+        if self.current_menu == "welcome":
+            self.speak("Please say 'yes' if you want to see the control menu, or 'no' to exit.")
+        elif self.current_menu == "main":
+            self.show_main_menu()
+        elif self.current_menu == "device":
+            self.show_device_menu(self.current_device)
+        else:
+            self.speak("Please try again with a valid command.")
 
-    # Calculate average latency from history (only for successful commands with responseTime)
-    successful_commands_with_latency = [entry for entry in COMMAND_HISTORY if entry["status"] == "success" and "responseTime" in entry]
-    avg_latency_ms = round(sum(entry["responseTime"] for entry in successful_commands_with_latency) / len(successful_commands_with_latency)) if successful_commands_with_latency else 0
+    def welcome_message(self, user_name: str = "User") -> None:
+        greeting = self.get_greeting()
+        current_time = self.get_current_time()
+        weather = self.get_weather()
+        message = f"{greeting}, {user_name}! I am your personal home assistant Sheila. The time is {current_time} and it's {weather}. What would you like to control today?"
+        self.speak(message)
+        time.sleep(2)
+        # self.speak("Would you like me to take you through the control menu?")
+        self.current_menu = "welcome"
 
-    # Calculate command frequencies
-    command_counts = Counter(entry["cmd"] for entry in COMMAND_HISTORY)
-    # Convert Counter object to a list of dicts for JSON
-    command_frequency = [{"command": cmd, "count": count} for cmd, count in command_counts.items()]
+    def show_main_menu(self) -> None:
+        menu_text = "Here are your options: "
+        for key, value in self.main_menu.items():
+            menu_text += f"{key} for {value}, "
+        menu_text += "Please say the number of your choice."
+        self.speak(menu_text)
+        self.current_menu = "main"
 
-    # Send back the last five entries (or fewer if <5)
-    last_five = COMMAND_HISTORY[-5:]
+    def show_device_menu(self, device_type: str) -> None:
+        menu = self.fan_menu if 'fan' in device_type else self.bulb_menu
+        menu_text = f"Here are your options for {device_type}: "
+        for key, value in menu.items():
+            menu_text += f"{key} for {value}, "
+        menu_text += "Please say your choice."
+        self.speak(menu_text)
+        self.current_menu = "device"
+        self.current_device = device_type
 
-    # Extract historical latency data for the graph
-    historical_latency = []
-    for entry in COMMAND_HISTORY:
-        if "responseTime" in entry and "timestamp" in entry:
-            # Using timestamp as x-value and responseTime as y-value
-            historical_latency.append({"timestamp": entry["timestamp"], "latency": entry["responseTime"]})
+    def run(self) -> None:
+        self.is_active = True
+        print("\nSheila is listening! Say 'Sheila' or 'Sheela' to activate.")
+        while self.is_active:
+            text = self.listen(prompt=None, retries=3)
+            if not text:
+                continue
+            if "sheila" in text or "sheela" in text:
+                self.welcome_message()
+                while self.is_active:
+                    if self.current_menu == "welcome":
+                        command = self.listen("Say 'yes' for menu or 'no' to exit.")
+                        if 'yes' in command:
+                            self.show_main_menu()
+                        elif 'no' in command:
+                            self.speak("Thanks for interacting with me. Just call me when you need my service.")
+                            self.is_active = False
+                            break
+                        else:
+                            self.handle_invalid_input()
+                    elif self.current_menu == "main":
+                        command = self.listen("Please say the number of your choice.")
+                        command = self.normalize_command(command)
+                        if command in self.main_menu:
+                            device = command
+                            self.speak(f"You chose {self.main_menu[command]}. What do you want to do with it?")
+                            time.sleep(2)
+                            self.speak("Would you like me to take you through the control menu?")
+                            self.current_menu = "device_choice"
+                            self.current_device = device
+                        else:
+                            self.handle_invalid_input()
+                    elif self.current_menu == "device_choice":
+                        command = self.listen("Say 'yes' for device menu or 'no' to exit.")
+                        if 'yes' in command:
+                            self.show_device_menu(self.current_device)
+                        elif 'no' in command:
+                            self.speak("Thanks for interacting with me. Just call me when you need my service.")
+                            self.is_active = False
+                            break
+                        else:
+                            self.handle_invalid_input()
+                    elif self.current_menu == "device":
+                        command = self.listen("Please say your command for the device.")
+                        self.process_device_command(self.current_device, command)
+                        self.speak("Anything else? Say 'yes' to continue or 'no' to exit.")
+                        cont = self.listen()
+                        if 'no' in cont:
+                            self.speak("Thanks for interacting with me. Just call me when you need my service.")
+                            self.is_active = False
+                            break
+                        else:
+                            self.show_main_menu()
 
-    return jsonify({
-        "totalCommands": total,
-        "successfulCommands": successes,
-        "averageLatencyMs": avg_latency_ms,
-        "lastFiveCommands": last_five,
-        "commandFrequency": command_frequency,
-        "historicalLatency": historical_latency
-    }), 200
-
-if __name__ == '__main__':
-    logger.info("Starting server...")
-    # Create initial sample devices
-    sample_devices = create_sample_devices()
-    for device in sample_devices:
-        DEVICES[device["id"]] = device
-    logger.info(f"Created {len(sample_devices)} initial sample devices")
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+if __name__ == "__main__":
+    sheila = Sheila()
+    sheila.run() 
